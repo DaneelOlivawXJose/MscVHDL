@@ -108,7 +108,7 @@ begin
     -- Spawns all required function evaluators to run concurrently.
     
     -- Evaluates the unshifted base point: f(x)
-    calc_inst_normal: entity work.fcn_2
+    calc_inst_normal: entity work.fcn_1
         port map (
             clk       => clk,
             reset     => reset,
@@ -120,7 +120,7 @@ begin
 
     -- Evaluates the shifted points: f(x + h_i)
     GEN_FCN: for i in 0 to N_DIM-1 generate
-        calc_inst_h: entity work.fcn_2
+        calc_inst_h: entity work.fcn_1
             port map (
                 clk       => clk,
                 reset     => reset,

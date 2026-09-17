@@ -101,7 +101,7 @@ begin
 end architecture sim;
 
 -- ghdl -a --std=08 ../lib_config.vhd
--- ghdl -a --std=08 ../Fcn_example/fcn_2.vhd
+-- ghdl -a --std=08 ../Fcn_example/fcn_1.vhd
 -- ghdl -a --std=08 ../ops_varias/computeGradient.vhd
 -- ghdl -a --std=08 computeGradient_tb.vhd
 -- ghdl -e --std=08 computeGradient_tb
