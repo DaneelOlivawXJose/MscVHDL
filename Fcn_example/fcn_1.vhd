@@ -4,11 +4,11 @@ use ieee.numeric_std.all;
 use work.lib_config.all;
 
 entity fcn_1 is
-    Port (
+    port(
         clk       : in  std_logic;
         reset     : in  std_logic;
-        start     : in  std_logic;             -- Nueva señal de inicio
-        entradas  : in  array_of_fp(0 to 2); 
+        start     : in  std_logic;
+        entradas  : in  array_of_fp;         -- <--- SOLUCIÓN: Sin límites (Unconstrained)
         resultado : out fp_type;
         terminado : out std_logic
     );
@@ -44,10 +44,11 @@ begin
         elsif rising_edge(clk) then
             
             -- ETAPA 1: Multiplicación (solo calcula si hay un 'start')
+            -- ETAPA 1: Multiplicación
             if start = '1' then
                 term1 <= fp_mult(entradas(0), entradas(0));
                 term2 <= fp_mult(entradas(1), entradas(1));
-                term3 <= fp_mult(fp_mult(FP_THREE, entradas(0)), entradas(2));
+                term3 <= (others => '0'); -- Anulamos el uso de entradas(2)
             end if;
             valid_s1 <= start; -- El 'start' viaja a la siguiente etapa como 'valid'
 
