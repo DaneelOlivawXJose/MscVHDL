@@ -28,4 +28,17 @@ package lib_config is
         terminado       : std_logic;
     end record;
 
+    function fp_mult(a, b : fp_type) return fp_type;
+
 end package lib_config;
+
+package body lib_config is
+    
+    function fp_mult(a, b : fp_type) return fp_type is
+        variable m : fp_mult_type;
+    begin
+        m := a * b;
+        return resize(shift_right(m, FRAC_WIDTH), TOTAL_WIDTH);
+    end function;
+
+end package body lib_config;
