@@ -35,12 +35,6 @@ architecture sim of gauss_jordan_tb is
     signal pivot_col_in : integer range 0 to N_COLS - 1;
     signal matrix_out   : matrix_of_fp(0 to N_ROWS - 1)(0 to N_COLS - 1);
 
-    -- Función auxiliar para inyectar enteros fácilmente al formato Q8.24
-    function to_fp(val : integer) return fp_type is
-    begin
-        return to_signed(val * (2**FRAC_WIDTH), TOTAL_WIDTH);
-    end function;
-
 begin
 
     -- Instanciación del módulo
@@ -89,9 +83,9 @@ begin
         -- Fila 0: [ 2.0,  4.0,  6.0, 18.0 ] (Pivotaremos en 0,0)
         -- Fila 1: [ 4.0,  5.0,  6.0, 24.0 ]
         -- Fila 2: [ 3.0,  1.0, -2.0,  4.0 ]
-        matrix_in(0)(0) <= to_fp(2);  matrix_in(0)(1) <= to_fp(4);  matrix_in(0)(2) <= to_fp(6);  matrix_in(0)(3) <= to_fp(18);
-        matrix_in(1)(0) <= to_fp(4);  matrix_in(1)(1) <= to_fp(5);  matrix_in(1)(2) <= to_fp(6);  matrix_in(1)(3) <= to_fp(24);
-        matrix_in(2)(0) <= to_fp(3);  matrix_in(2)(1) <= to_fp(1);  matrix_in(2)(2) <= to_fp(-2); matrix_in(2)(3) <= to_fp(4);
+        matrix_in(0)(0) <= to_fp(2.0);  matrix_in(0)(1) <= to_fp(4.0);  matrix_in(0)(2) <= to_fp(6.0);  matrix_in(0)(3) <= to_fp(18.0);
+        matrix_in(1)(0) <= to_fp(4.0);  matrix_in(1)(1) <= to_fp(5.0);  matrix_in(1)(2) <= to_fp(6.0);  matrix_in(1)(3) <= to_fp(24.0);
+        matrix_in(2)(0) <= to_fp(3.0);  matrix_in(2)(1) <= to_fp(1.0);  matrix_in(2)(2) <= to_fp(-2.0); matrix_in(2)(3) <= to_fp(4.0);
 
         -- Configurar objetivo del pivote
         pivot_row_in <= 0;
@@ -109,7 +103,7 @@ begin
         end_time := now;
 
         -- Comprobación del pivote (Fila 0, Columna 0 debe ser 1.0)
-        assert matrix_out(0)(0) = to_fp(1)
+        assert matrix_out(0)(0) = to_fp(1.0)
             report "Error: El pivote no es 1.0. Valor obtenido: " & integer'image(to_integer(matrix_out(0)(0)))
             severity error;
             

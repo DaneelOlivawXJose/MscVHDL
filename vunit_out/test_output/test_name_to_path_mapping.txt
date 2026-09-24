@@ -1,1 +1,3 @@
 msc_lib.gauss_jordan_tb.all_0ee1db50654180f8658e35a81cd73022d9173bd2 msc_lib.gauss_jordan_tb.all
+msc_lib.proglineal_tb.all_759c806128945dc682029e0a2da008ed31f23d9f msc_lib.proglineal_tb.all
+msc_lib.steepestgradient_tb.all_737e72be03002050b8c1c6adae99e65448f7663a msc_lib.steepestgradient_tb.all

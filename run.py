@@ -22,7 +22,7 @@ lib.add_source_files(ROOT / "hdl" / "**" / "*.vhd")
 lib.add_source_files(ROOT / "tb" / "**" / "*.vhd")
 
 # 5. Configurar opciones de GHDL (Corregido el Warning de a_flags)
-ui.set_sim_option("ghdl.sim_flags", ["--wave=waves.ghw"])
+ui.set_sim_option("ghdl.sim_flags", ["--fst=waves_fst.fst"])
 ui.set_compile_option("ghdl.a_flags", ["--std=08"])
 
 # 6. Ejecutar

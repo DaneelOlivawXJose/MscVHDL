@@ -1,8 +1,8 @@
+C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:117:9:@835ns:(report note): ===================================================
+C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:118:9:@835ns:(report note): GAUSS-JORDAN EJECUCION COMPLETADA
+C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:119:9:@835ns:(report note): N_ROWS: 3, N_COLS: 4
+C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:120:9:@835ns:(report note): PARALLEL_UNITS: 4
+C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:121:9:@835ns:(report note): LATENCIA TOTAL: 76 ciclos de reloj.
+C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:122:9:@835ns:(report note): TIEMPO SIMULADO: 760000000 fs
 C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:123:9:@835ns:(report note): ===================================================
-C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:124:9:@835ns:(report note): GAUSS-JORDAN EJECUCION COMPLETADA
-C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:125:9:@835ns:(report note): N_ROWS: 3, N_COLS: 4
-C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:126:9:@835ns:(report note): PARALLEL_UNITS: 4
-C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:127:9:@835ns:(report note): LATENCIA TOTAL: 76 ciclos de reloj.
-C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:128:9:@835ns:(report note): TIEMPO SIMULADO: 760000000 fs
-C:\Users\34601\Desktop\ProyectosMios\MscVHDL\tb\gauss_jordan_tb.vhd:129:9:@835ns:(report note): ===================================================
 simulation stopped @835ns with status 0

@@ -9,14 +9,11 @@ end entity progLineal_tb;
 
 architecture sim of progLineal_tb is
 
-    constant C_VARS  : integer := 3;
+    -- Usamos 2 variables y 3 restricciones para poder reutilizar el mismo componente
+    constant C_VARS  : integer := 2;
     constant C_REST  : integer := 3;
     constant CLK_PER : time := 10 ns;
-
-    function to_fp(val : real) return fp_type is
-    begin
-        return to_signed(integer(val * real(2**FRAC_WIDTH)), TOTAL_WIDTH);
-    end function;
+    constant GJ_PARALLEL_UNITS : integer := 2;
 
     signal clk               : std_logic := '0';
     signal reset             : std_logic := '1';
@@ -24,24 +21,17 @@ architecture sim of progLineal_tb is
     signal done              : std_logic;
     signal result            : array_of_fp(0 to C_VARS - 1);
     
-    -- Z = 5x1 + 4x2 + 3x3
-    signal funcObj           : array_of_fp(0 to C_VARS - 1) := (
-        to_fp(5.0), to_fp(4.0), to_fp(3.0)
-    );
-    
-    -- Restricciones
-    signal restrictionsFuncs : matrix_of_fp(0 to C_REST - 1)(0 to C_VARS) := (
-        (to_fp(2.0), to_fp(3.0), to_fp(1.0), to_fp(5.0)),  -- R0: 2x1 + 3x2 + 1x3 <= 5
-        (to_fp(4.0), to_fp(1.0), to_fp(2.0), to_fp(11.0)), -- R1: 4x1 + 1x2 + 2x3 <= 11
-        (to_fp(3.0), to_fp(4.0), to_fp(2.0), to_fp(8.0))   -- R2: 3x1 + 4x2 + 2x3 <= 8
-    );
+    -- Señales dinámicas para poder cambiarlas en ejecución
+    signal funcObj           : array_of_fp(0 to C_VARS - 1) := (others => FP_ZERO);
+    signal restrictionsFuncs : matrix_of_fp(0 to C_REST - 1)(0 to C_VARS) := (others => (others => FP_ZERO));
 
 begin
 
     UUT : entity work.progLineal
         generic map (
             N_VARIABLES    => C_VARS,
-            N_RESTRICTIONS => C_REST
+            N_RESTRICTIONS => C_REST,
+            GJ_PARALLEL_UNITS => GJ_PARALLEL_UNITS
         )
         port map (
             clk               => clk,
@@ -62,30 +52,114 @@ begin
     end process;
 
     stim_proc: process
+        variable start_time : time;
+        variable end_time   : time;
+        variable cycles     : integer;
     begin
+        
+        -- =================================================================
+        -- CASO DE ESTUDIO 1:
+        -- Max Z = 3x1 + 4x2
+        -- Sujeto a:
+        -- 1x1 + 2x2 <= 14
+        -- 3x1 - 1x2 <= 0
+        -- 1x1 - 1x2 <= 2
+        -- Solución Óptima Real: x1 = 2.0, x2 = 6.0  (Beneficio Z = 30)
+        -- =================================================================
+        report "---------------------------------------------------";
+        report "Iniciando CASO 1: Simplex Matriz 2x3...";
+        
+        -- Cargar Datos del Caso 1
+        funcObj(0) <= to_fp(3.0); funcObj(1) <= to_fp(4.0);
+        
+        restrictionsFuncs(0)(0) <= to_fp(1.0); restrictionsFuncs(0)(1) <= to_fp(2.0);  restrictionsFuncs(0)(2) <= to_fp(14.0);
+        restrictionsFuncs(1)(0) <= to_fp(3.0); restrictionsFuncs(1)(1) <= to_fp(-1.0); restrictionsFuncs(1)(2) <= to_fp(0.0);
+        restrictionsFuncs(2)(0) <= to_fp(1.0); restrictionsFuncs(2)(1) <= to_fp(-1.0); restrictionsFuncs(2)(2) <= to_fp(2.0);
+        
         reset <= '1';
         start <= '0';
         wait for CLK_PER * 5;
-        
         reset <= '0';
         wait for CLK_PER * 2;
         
-        report "Iniciando modulo de Programacion Lineal (Matriz 3x3)...";
+        -- Disparo
+        wait until rising_edge(clk);
+        start_time := now;
         start <= '1';
-        wait for CLK_PER;
-        start <= '0'; 
+        wait until rising_edge(clk);
+        start <= '0';
         
+        -- Esperar fin
         wait until done = '1';
+        wait for CLK_PER * 3;
+        end_time := now;
+
+        -- Tolerancia para punto fijo (usamos 1000 unidades binarias de margen por los redondeos)
+        assert abs(to_integer(result(0)) - to_integer(to_fp(2.0))) < 1000
+            report "ERROR CASO 1: x1 incorrecto. Obtenido: " & integer'image(to_integer(result(0))) severity error;
+            
+        assert abs(to_integer(result(1)) - to_integer(to_fp(6.0))) < 1000
+            report "ERROR CASO 1: x2 incorrecto. Obtenido: " & integer'image(to_integer(result(1))) severity error;
         
-        report "Procesamiento finalizado. Revisa GTKWave.";
+        cycles := (end_time - start_time) / CLK_PER;
+        report "CASO 1 COMPLETADO CON EXITO EN " & integer'image(cycles) & " ciclos.";
+
+
+        wait for CLK_PER * 20; -- Margen visual para GTKWave
+
+
+        -- =================================================================
+        -- CASO DE ESTUDIO 2:
+        -- Max Z = 5x1 + 2x2
+        -- Sujeto a:
+        -- 2x1 + 1x2 <= 8
+        -- 1x1 + 2x2 <= 7
+        -- 1x1 + 0x2 <= 3
+        -- Solución Óptima Real: x1 = 3.0, x2 = 2.0  (Beneficio Z = 19)
+        -- =================================================================
+        report "---------------------------------------------------";
+        report "Iniciando CASO 2: Nueva Matriz 2x3...";
+        
+        -- Sobrescribir Datos del Caso 2
+        funcObj(0) <= to_fp(5.0); funcObj(1) <= to_fp(2.0);
+        
+        restrictionsFuncs(0)(0) <= to_fp(2.0); restrictionsFuncs(0)(1) <= to_fp(1.0); restrictionsFuncs(0)(2) <= to_fp(8.0);
+        restrictionsFuncs(1)(0) <= to_fp(1.0); restrictionsFuncs(1)(1) <= to_fp(2.0); restrictionsFuncs(1)(2) <= to_fp(7.0);
+        restrictionsFuncs(2)(0) <= to_fp(1.0); restrictionsFuncs(2)(1) <= to_fp(0.0); restrictionsFuncs(2)(2) <= to_fp(3.0);
+        
+        -- Reset estricto para reiniciar la Máquina de Estados
+        reset <= '1';
+        wait for CLK_PER * 5;
+        reset <= '0';
+        wait for CLK_PER * 2;
+        
+        -- Disparo
+        wait until rising_edge(clk);
+        start_time := now;
+        start <= '1';
+        wait until rising_edge(clk);
+        start <= '0';
+        
+        -- Esperar fin
+        wait until done = '1';
+        wait for CLK_PER * 3;
+        end_time := now;
+
+        -- Comprobación Matemática
+        assert abs(to_integer(result(0)) - to_integer(to_fp(3.0))) < 1000
+            report "ERROR CASO 2: x1 incorrecto. Obtenido: " & integer'image(to_integer(result(0))) severity error;
+            
+        assert abs(to_integer(result(1)) - to_integer(to_fp(2.0))) < 1000
+            report "ERROR CASO 2: x2 incorrecto. Obtenido: " & integer'image(to_integer(result(1))) severity error;
+
+        cycles := (end_time - start_time) / CLK_PER;
+        report "CASO 2 COMPLETADO CON EXITO EN " & integer'image(cycles) & " ciclos.";
+        
+        report "===================================================";
+        report "TESTBENCH COMPLETADO EXITOSAMENTE (AMBOS CASOS)";
+        report "===================================================";
+
         wait;
     end process;
 
 end architecture sim;
-
--- ghdl -a --std=08 ../lib_config.vhd
--- ghdl -a --std=08 ../ops_varias/gauss_jordan.vhd
--- ghdl -a --std=08 ../Cntrl_Inteligente/progLineal.vhd
--- ghdl -a --std=08 progLineal_tb.vhd
--- ghdl -e --std=08 progLineal_tb
--- ghdl -r --std=08 progLineal_tb --fst=ondas_fst.fst --stop-time=50000ns

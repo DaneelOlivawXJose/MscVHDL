@@ -29,7 +29,7 @@ package lib_config is
     end record;
 
     function fp_mult(a, b : fp_type) return fp_type;
-
+    function to_fp(val : real) return fp_type;
 end package lib_config;
 
 package body lib_config is
@@ -39,6 +39,13 @@ package body lib_config is
     begin
         m := a * b;
         return resize(shift_right(m, FRAC_WIDTH), TOTAL_WIDTH);
+    end function;
+
+
+    -- Función auxiliar para inyectar enteros fácilmente al formato Q8.24
+    function to_fp(val : real) return fp_type is
+    begin
+        return to_signed(integer(val * real(2**FRAC_WIDTH)), TOTAL_WIDTH);
     end function;
 
 end package body lib_config;

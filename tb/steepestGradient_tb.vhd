@@ -10,7 +10,12 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.lib_config.all;
 
+-- 1. IMPORTAR VUNIT
+library vunit_lib;
+context vunit_lib.vunit_context;
+
 entity steepestGradient_tb is
+    generic (runner_cfg : string);
 end entity steepestGradient_tb;
 
 architecture sim of steepestGradient_tb is
@@ -34,9 +39,9 @@ begin
         generic map (
             MAX_ITER    => 2000,
             N_DIM       => 2,
-            H           => to_signed(2**(24-5), 32),
-            H_SHIFT     => 5,
-            ALPHA_SHIFT => 5,
+            H           => to_signed(2**(24-12), 32),
+            H_SHIFT     => 12,
+            ALPHA_SHIFT => 7,
             MAX_ERR     => to_signed(integer(0.000002*real(2**24)), TOTAL_WIDTH) 
         )
         port map (
@@ -57,7 +62,12 @@ begin
     end process;
 
     stim_proc: process
+        variable start_time : time;
+        variable end_time   : time;
+        variable cycles     : integer;
     begin
+        test_runner_setup(runner, runner_cfg);
+
         reset <= '1';
         start <= '0';
         start_point(0) <= (others => '0');
@@ -70,17 +80,38 @@ begin
         start_point(0) <= X0_INIT;
         start_point(1) <= X1_INIT;
         start <= '1';
+        start_time := now;
         wait for CLK_PERIOD;
         start <= '0';
 
         wait until done = '1';
+        end_time := now;
         wait for CLK_PERIOD;
 
         report "====== SIMULATION COMPLETED ======" severity note;
-        report "Expected Result: Close to [0.0, 0.0]" severity note;
+        report "Resultado esperado: (" & real'image(1.0) & ", " & real'image(2.0) & ")";
+
+        -- Comprobación del pivote (Fila 0, Columna 0 debe ser 1.0)
+        assert abs(result(0) - to_fp(1.0)) <= 200
+            report "Error: X deberia ser = 0.0. Valor obtenido: " & integer'image(to_integer(result(0)))
+            severity error;
+            
+        -- Comprobación de la eliminación (Fila 1, Columna 0 debe ser 0.0)
+        assert abs(result(1) - to_fp(2.0)) <= 200
+            report "Error: Y deberia ser = 0.0. Valor obtenido: " & integer'image(to_integer(result(1)))
+            severity error;
+        
+        -- 5. Calcular e imprimir métricas de rendimiento
+        cycles := (end_time - start_time) / CLK_PERIOD;
+        report "===================================================";
+        report "STEEPEST GRADIENT EJECUCION COMPLETADA";
+        report "LATENCIA TOTAL: " & integer'image(cycles) & " ciclos de reloj.";
+        report "TIEMPO SIMULADO: " & time'image(end_time - start_time);
+        report "===================================================";
+
+        test_runner_cleanup(runner);
         
         wait for CLK_PERIOD * 10;
-        std.env.stop;
     end process;
 
 end architecture sim;

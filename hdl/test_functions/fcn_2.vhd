@@ -26,12 +26,13 @@ architecture rtl of fcn_2 is
     -- Registros Etapa 1
     signal term_x0_sq : fp_type := (others => '0');
     signal term_x1_sq : fp_type := (others => '0');
-    signal reg_x1     : fp_type := (others => '0');
+    signal term_x0_x2 : fp_type := (others => '0');
+    signal term_x1_x4 : fp_type := (others => '0');
     signal valid_s1   : std_logic := '0';
 
     -- Registros Etapa 2
+    signal term_part0 : fp_type := (others => '0');
     signal term_part1 : fp_type := (others => '0');
-    signal term_part2 : fp_type := (others => '0');
     signal valid_s2   : std_logic := '0';
 
 begin
@@ -41,9 +42,10 @@ begin
         if reset = '1' then
             term_x0_sq <= (others => '0');
             term_x1_sq <= (others => '0');
-            reg_x1     <= (others => '0');
+            term_x0_x2 <= (others => '0');
+            term_x1_x4 <= (others => '0');
+            term_part0 <= (others => '0');
             term_part1 <= (others => '0');
-            term_part2 <= (others => '0');
             resultado  <= (others => '0');
             valid_s1   <= '0';
             valid_s2   <= '0';
@@ -52,21 +54,26 @@ begin
         elsif rising_edge(clk) then
             
             -- ==========================================
-            -- ETAPA 1: Primeros cuadrados
+            -- ETAPA 1: Cuadrados y Multiplicaciones x2/x4
             -- ==========================================
             if start = '1' then
                 term_x0_sq <= fp_mult(entradas(0), entradas(0)); -- x0^2
                 term_x1_sq <= fp_mult(entradas(1), entradas(1)); -- x1^2
-                reg_x1     <= entradas(1);                       -- Guardamos x1 para la etapa 2
+                
+                -- Multiplicar por 2 es desplazar 1 bit a la izquierda
+                term_x0_x2 <= shift_left(entradas(0), 1);        -- 2 * x0
+                
+                -- Multiplicar por 4 es desplazar 2 bits a la izquierda
+                term_x1_x4 <= shift_left(entradas(1), 2);        -- 4 * x1
             end if;
             valid_s1 <= start;
 
             -- ==========================================
-            -- ETAPA 2: Multiplicaciones cruzadas
+            -- ETAPA 2: Restas parciales
             -- ==========================================
             if valid_s1 = '1' then
-                term_part1 <= fp_mult(term_x0_sq, reg_x1);       -- x0^2 * x1
-                term_part2 <= shift_left(term_x1_sq, 1);         -- 2 * x1^2 (Multiplicar por 2 es desplazar 1 bit)
+                term_part0 <= term_x0_sq - term_x0_x2;           -- x0^2 - 2x0
+                term_part1 <= term_x1_sq - term_x1_x4;           -- x1^2 - 4x1
             end if;
             valid_s2 <= valid_s1;
 
@@ -74,7 +81,7 @@ begin
             -- ETAPA 3: Suma Final
             -- ==========================================
             if valid_s2 = '1' then
-                resultado <= term_part1 + term_part2;            -- (x0^2 * x1) + (2 * x1^2)
+                resultado <= term_part0 + term_part1;            -- (x0^2 - 2x0) + (x1^2 - 4x1)
             end if;
             terminado <= valid_s2;
             
