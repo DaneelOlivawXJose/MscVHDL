@@ -1,0 +1,5 @@
+# Archivos y carpetas generados por la simulación
+vunit_out/
+waves.ghw
+*.o
+*.cf
