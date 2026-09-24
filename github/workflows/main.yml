@@ -1,0 +1,44 @@
+name: CI VHDL - MscVHDL
+
+# 1. ¿Cuándo se ejecuta? Cada vez que hagas push a la rama principal (main/master)
+# o cuando alguien te envíe un Pull Request.
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    name: Simulación con VUnit y GHDL
+    runs-on: ubuntu-latest # GitHub nos presta un servidor Linux gratuito
+
+    steps:
+      # Paso 1: Descargar tu código del repositorio al servidor virtual
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+
+      # Paso 2: Instalar Python (Necesario para VUnit)
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Paso 3: Instalar GHDL (El compilador/simulador de hardware libre)
+      - name: 🛠️ Instalar GHDL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghdl
+
+      # Paso 4: Instalar VUnit a través de pip
+      - name: 📦 Instalar VUnit
+        run: |
+          python -m pip install --upgrade pip
+          pip install vunit_hdl
+
+      # Paso 5: ¡La hora de la verdad! Ejecutar tu script automático
+      # Si algún test falla, VUnit devolverá un error y GitHub pondrá una X roja.
+      # Si todos pasan, GitHub pondrá un tick verde ✅.
+      - name: 🚀 Ejecutar Testbenches
+        run: |
+          python run.py
